@@ -1,0 +1,56 @@
+---
+# tasks file for maven
+# https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+
+- name: get java version
+  shell:   "java -version 2>&1"
+  register: java_version_result
+  changed_when: false
+
+- name: test java version
+  fail:
+    msg: "this installation of maven requires java version {{ java_version }} or higher"
+  when:  "'{{ java_version }}' not in java_version_result.stdout"
+
+- name: get maven checksum
+  set_fact:
+    maven_checksum: "{{ maven_checksum_algo }}:{{ item }}"
+  with_url: "{{ maven_checksum_url }}"
+
+- name: get maven
+  get_url:
+    url:      "{{ maven_url }}"
+    dest:     "{{ maven_download_dir }}"
+    checksum: "{{ maven_checksum }}"
+  register: got_maven
+
+- name: extract maven
+  unarchive:
+    src:        "{{ maven_download_dir }}/{{ maven_download_file }}"
+    dest:       "{{ maven_install_dir }}"
+    remote_src: yes
+  when: got_maven.changed
+
+- name: symlink maven
+  file:
+    src:    "{{ maven_install_dir }}/{{ maven_dir }}"
+    dest:   "{{ maven_install_dir }}/maven"
+    state:  link
+
+- name: set maven environment var
+  lineinfile:
+    dest:   "/etc/profile.d/maven.sh"
+    line:   "export PATH={{ maven_install_dir }}/maven/bin:$PATH"
+    state:  present
+    create: yes
+
+- name: get maven version
+  shell:   "mvn --version"
+  register: maven_version_result
+  changed_when: false
+  become: false
+
+- name: test maven version
+  fail:
+    msg: "attempted to install maven {{ maven_version }}, but something went wrong"
+  when:  "'{{ maven_version }}' not in maven_version_result.stdout"

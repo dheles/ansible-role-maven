@@ -1,0 +1,13 @@
+---
+# https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+java_version:           1.8
+java_home:              "/usr/lib/jvm/jre"
+maven_major_version:   3
+maven_version:         3.3.9
+maven_install_dir:     "/usr/local"
+maven_download_dir:    "{{ ansible_env.HOME}}"
+maven_dir:             "apache-maven-{{ maven_version }}"
+maven_download_file:   "{{ maven_dir }}-bin.tar.gz"
+maven_url:             "https://archive.apache.org/dist/maven/maven-{{ maven_major_version }}/{{ maven_version }}/binaries/{{ maven_download_file }}"
+maven_checksum_algo:   "sha1"
+maven_checksum_url:    "{{ maven_url }}.{{ maven_checksum_algo }}"
